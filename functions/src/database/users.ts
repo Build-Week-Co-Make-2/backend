@@ -9,3 +9,5 @@ export const getUserWithEmail: (
 > = async (email: string) => {
     return await Users.where('email', '==', email).get();
 };
+
+export default Users;
