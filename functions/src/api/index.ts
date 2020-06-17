@@ -6,6 +6,8 @@ const server = express();
 server.get('/', (req, res) => res.send('Hello World'));
 server.use(cors({ origin: true })); // this was the issue with reaching past root @ /
 
+server.use('/api', authRouter);
+
 type ErrorRequestType = {
     status: number;
     message: string;
