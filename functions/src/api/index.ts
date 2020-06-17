@@ -6,6 +6,11 @@ const server = express();
 server.get('/', (req, res) => res.send('Hello World'));
 server.use(cors({ origin: true })); // this was the issue with reaching past root @ /
 
+type ErrorRequestType = {
+    status: number;
+    message: string;
+};
+
 const errorHandler: ErrorRequestHandler = (
     err: ErrorRequestType,
     _req,
@@ -16,4 +21,5 @@ const errorHandler: ErrorRequestHandler = (
 };
 
 server.use(errorHandler);
+
 export default server;
