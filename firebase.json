@@ -5,4 +5,14 @@
             "npm --prefix \"$RESOURCE_DIR\" run build"
         ]
     },
+    "hosting": {
+        "public": ".",
+        "ignore": ["firebase.json", "**/node_modules/**", "firebase.config.ts"],
+        "rewrites": [
+            {
+                "source": "**",
+                "function": "app"
+            }
+        ]
+    }
 }
