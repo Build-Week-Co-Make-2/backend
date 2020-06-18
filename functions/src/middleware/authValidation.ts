@@ -30,14 +30,16 @@ export const validateUser: RequestHandler = async (req, _res, next) => {
     const { email } = req.body;
     try {
         const users = await getUserWithEmail(email);
-        const user = users.docs
-            .find((doc) => doc.data().email === email)
-            ?.data();
+        const user = users.docs.find((doc) => doc.data().email === email);
         if (user) {
             // validate password here and now
-            const valid = bcrypt.compareSync(req.body.password, user.hash);
+            const valid = bcrypt.compareSync(
+                req.body.password,
+                user.data().hash,
+            );
             if (valid) {
-                req.body.user = user;
+                req.body.user = user.data();
+                req.body.id = user.ref.id;
                 next();
                 return;
             }
