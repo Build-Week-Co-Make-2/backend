@@ -13,16 +13,23 @@ const router = Router();
 router.post(
     '/register/',
     validateRegisterEmail,
-    async ({ body: { email, password, zip } }, res, next) => {
+    async ({ body: { email, password, zip, name } }, res, next) => {
         const hash = bcrypt.hashSync(password);
 
         try {
-            const userDocRef = await addUser({ email, hash, zip });
+            const userDocRef = await addUser({
+                email,
+                hash,
+                zip,
+                posts: [],
+                name,
+            });
             const userDoc = await userDocRef.get();
             const userData = userDoc.data();
             const user = {
                 email: userData?.email,
                 zip: userData?.zip,
+                name: userData?.name,
             };
             res.status(201).json(user);
         } catch (e) {
@@ -35,7 +42,7 @@ router.post('/login', validateUser, async (req, res, next) => {
     // check for user token
     if (!req.body.user.token) {
         const token = jwt.sign(
-            { email: req.body.user.email },
+            { email: req.body.user.email, id: req.body.id },
             functions.config()['co-make'].jwt.secret,
         );
 
@@ -60,7 +67,7 @@ router.post('/login', validateUser, async (req, res, next) => {
                 if (err.name === 'TokenExpiredError') {
                     // token expired == not valid
                     const token = jwt.sign(
-                        { email: req.body.user.email },
+                        { email: req.body.user.email, id: req.body.id },
                         functions.config()['co-make'].jwt.secret,
                     );
                     try {
