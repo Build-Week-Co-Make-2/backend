@@ -4,6 +4,8 @@ type AddUserType = {
     email: string;
     hash: string;
     zip: string;
+    posts: [];
+    name: string;
 };
 
 type AddUserCallback = (
