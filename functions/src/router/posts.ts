@@ -2,7 +2,7 @@ import { Router } from 'express';
 import admin from 'firebase-admin';
 import { authenticate } from '../middleware/authenticate';
 import { getAuthedUser } from '../middleware/getAuthedUser';
-import Posts from '../database/posts';
+import Posts, { PostDataModel } from '../database/posts';
 import Users from '../database/users';
 const router = Router();
 
@@ -244,6 +244,49 @@ router
             } catch (e) {
                 console.log(e);
                 next({ status: 500, message: 'Server issue in deleting post' });
+            }
+        },
+    );
+
+router
+    .route('/:id/upvote')
+    .put(
+        async ({ params: { id: postId }, body: { id: userId } }, res, next) => {
+            // when the front end visits this end point, it will increment upvote after adding user id to voted
+            // get post doc
+            try {
+                const postDocumentRef = Posts.doc(postId);
+                const postData = (
+                    await postDocumentRef.get()
+                ).data() as PostDataModel;
+                const userVoted: string | undefined = postData.voted.find(
+                    (id) => id === userId,
+                );
+                // check if user is inside voted
+                if (!userVoted) {
+                    // if not
+                    // increment votes by 1
+
+                    await postDocumentRef.update({
+                        voted: admin.firestore.FieldValue.arrayUnion(userId),
+                        upvotes: admin.firestore.FieldValue.increment(1),
+                    }); // this will have an owner field
+
+                    res.status(200).json({ message: 'Upvoted post' });
+                    return;
+                }
+                // send message stating user already voted and do nothing
+                await postDocumentRef.update({
+                    voted: admin.firestore.FieldValue.arrayRemove(userId),
+                    upvotes: admin.firestore.FieldValue.increment(-1),
+                });
+                res.status(200).json({ message: 'Removed upvote' });
+            } catch (e) {
+                console.log(e);
+                next({
+                    status: 500,
+                    message: 'Server dun goofed trying to upvote this post',
+                });
             }
         },
     );
