@@ -5,6 +5,7 @@ import helmet from 'helmet';
 
 import authRouter from '../router/auth';
 import postRouter from '../router/posts';
+import userRouter from '../router/users';
 import errorHandler from '../middleware/errorHandler';
 
 const server = express();
@@ -13,23 +14,9 @@ server.use(cors({ origin: true })); // this was the issue with reaching past roo
 server.use(helmet());
 server.use(morgan('tiny'));
 
-server.use('/api/posts', postRouter);
 server.use('/api', authRouter);
 server.use('/api/posts', postRouter);
-
-type ErrorRequestType = {
-    status: number;
-    message: string;
-};
-
-const errorHandler: ErrorRequestHandler = (
-    err: ErrorRequestType,
-    _req,
-    res,
-    _next,
-) => {
-    res.status(err.status).json(err.message);
-};
+server.use('/api/users', userRouter);
 
 server.use(errorHandler);
 
