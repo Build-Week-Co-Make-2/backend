@@ -1,5 +1,5 @@
 import database from './';
-
+const Users = database.collection('users');
 export default Users;
 
 export interface PublicUserDataModel {
