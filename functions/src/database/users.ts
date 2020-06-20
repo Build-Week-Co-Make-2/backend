@@ -101,7 +101,9 @@ export class User implements UserInterface {
 
                 return new User(data);
             }
-            return;
+            throw Error(
+                'There are two or more emails in the system and that cannot happen',
+            );
         } catch (e) {
             throw Error(e.message);
         }
