@@ -66,7 +66,7 @@ router
             next({ status: 500, message: 'Server error grabbing all posts' });
         }
     })
-    .post(async ({ body: { title, description, id } }, res, next) => {
+    .post(async ({ body: { title, description, user } }, res, next) => {
         // add a post, requires user.id
         // if we get here, req.body.id should contain user.id
         /**
@@ -83,7 +83,7 @@ router
                 description: description,
                 upvotes: 0,
                 voted: [],
-                owner: id,
+                owner: user.id,
             };
             const post = await (await Posts.add(postCreateData)).get();
             const postData = post.data();
@@ -144,11 +144,7 @@ router
     })
     .put(
         async (
-            {
-                params: { id },
-                body: { title, description, id: authedUserId },
-                ...req
-            },
+            { params: { id }, body: { title, description, user }, ...req },
             res,
             next,
         ) => {
@@ -176,7 +172,7 @@ router
                 const postDocumentData = postDocument.data();
 
                 // verify postDocument.owner is the authed user
-                if (postDocumentData?.owner !== authedUserId) {
+                if (postDocumentData?.owner !== user.id) {
                     next({
                         status: 403,
                         message:
