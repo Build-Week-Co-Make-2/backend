@@ -41,17 +41,13 @@ router.post('/login', validateUser, async (req, res, next) => {
     // check for user token
     if (!req.body.user.token) {
         const token = jwt.sign(
-            { email: req.body.user.email, id: req.body.id },
+            { email: req.body.user.email, id: req.body.user.id },
             functions.config()['co-make'].jwt.secret,
         );
 
         // update user in database to include token
         try {
-            const docRef = await getUserWithEmail(req.body.user.email);
-            const docData = await docRef.docs.find(
-                (doc) => doc.data().email === req.body.user.email,
-            );
-            await docData?.ref.set({ token }, { merge: true });
+            await Users.doc(req.body.user.id).set({ token }, { merge: true });
             res.status(200).json(token);
         } catch (e) {
             next({ status: 500, message: 'Server login dun goofed' });
@@ -70,13 +66,10 @@ router.post('/login', validateUser, async (req, res, next) => {
                         functions.config()['co-make'].jwt.secret,
                     );
                     try {
-                        const docRef = await getUserWithEmail(
-                            req.body.user.email,
+                        await Users.doc(req.body.user.id).set(
+                            { token },
+                            { merge: true },
                         );
-                        const docData = await docRef.docs.find(
-                            (doc) => doc.data().email === req.body.user.email,
-                        );
-                        await docData?.ref.set({ token }, { merge: true });
                         res.status(200).json(token);
                     } catch (e) {
                         next({
