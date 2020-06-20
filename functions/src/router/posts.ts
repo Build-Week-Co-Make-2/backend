@@ -216,37 +216,35 @@ router
             }
         },
     )
-    .delete(
-        async ({ params: { id }, body: { id: authedUserId } }, res, next) => {
-            try {
-                const postDocument = await Posts.doc(id).get();
-                const postDocumentData = postDocument.data();
+    .delete(async ({ params: { id }, body: { user } }, res, next) => {
+        try {
+            const postDocument = await Posts.doc(id).get();
+            const postDocumentData = postDocument.data();
 
-                // verify postDocument.owner is the authed user
-                if (postDocumentData?.owner !== authedUserId) {
-                    next({
-                        status: 403,
-                        message:
-                            'Only the owner of a post may make changes to their documents',
-                    });
-                    return;
-                }
-
-                // remove reference to post.id in user.posts
-                await Users.doc(postDocumentData?.owner).update({
-                    posts: admin.firestore.FieldValue.arrayRemove(
-                        postDocument.ref.id,
-                    ),
+            // verify postDocument.owner is the authed user
+            if (postDocumentData?.owner !== user.id) {
+                next({
+                    status: 403,
+                    message:
+                        'Only the owner of a post may make changes to their documents',
                 });
-
-                await Posts.doc(postDocument.id).delete();
-                res.status(200).json({ message: 'Post has been deleted' });
-            } catch (e) {
-                console.log(e);
-                next({ status: 500, message: 'Server issue in deleting post' });
+                return;
             }
-        },
-    );
+
+            // remove reference to post.id in user.posts
+            await Users.doc(postDocumentData?.owner).update({
+                posts: admin.firestore.FieldValue.arrayRemove(
+                    postDocument.ref.id,
+                ),
+            });
+
+            await Posts.doc(postDocument.id).delete();
+            res.status(200).json({ message: 'Post has been deleted' });
+        } catch (e) {
+            console.log(e);
+            next({ status: 500, message: 'Server issue in deleting post' });
+        }
+    });
 
 router
     .route('/:id/upvote')
