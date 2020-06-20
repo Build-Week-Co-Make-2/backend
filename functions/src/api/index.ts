@@ -2,6 +2,7 @@ import express, { ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import authRouter from '../router/auth';
 import postRouter from '../router/posts';
+import errorHandler from '../middleware/errorHandler';
 
 const server = express();
 server.get('/', (req, res) => res.send('Hello World'));
