@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getUserWithEmail } from '../database/users';
+import { User } from '../database/users';
 import bcrypt from 'bcryptjs';
 
 export const validateRegisterEmail: RequestHandler = async (
@@ -10,10 +10,8 @@ export const validateRegisterEmail: RequestHandler = async (
     // check for existing users
     const { email } = req.body;
     try {
-        const users = await getUserWithEmail(email);
-        const user = users.docs
-            .find((doc) => doc.data().email === email)
-            ?.data();
+        // const users = await getUserWithEmail(email);
+        const user = await User.getByEmail(email);
         if (user) {
             next({
                 status: 400,
@@ -22,6 +20,7 @@ export const validateRegisterEmail: RequestHandler = async (
         }
         next();
     } catch (e) {
+        console.log(e);
         next({ status: 500, message: 'Unexpected server response' });
     }
 };
@@ -29,17 +28,12 @@ export const validateRegisterEmail: RequestHandler = async (
 export const validateUser: RequestHandler = async (req, _res, next) => {
     const { email } = req.body;
     try {
-        const users = await getUserWithEmail(email);
-        const user = users.docs.find((doc) => doc.data().email === email);
+        const user = await User.getByEmail(email);
         if (user) {
             // validate password here and now
-            const valid = bcrypt.compareSync(
-                req.body.password,
-                user.data().hash,
-            );
+            const valid = bcrypt.compareSync(req.body.password, user.hash);
             if (valid) {
-                req.body.user = user.data();
-                req.body.id = user.ref.id;
+                req.body.user = user;
                 next();
                 return;
             }
@@ -53,6 +47,7 @@ export const validateUser: RequestHandler = async (req, _res, next) => {
             message: 'Email or Password incorrect',
         });
     } catch (e) {
+        console.log(e);
         next({ status: 500, message: 'Unexpected server response' });
     }
 };
