@@ -6,8 +6,7 @@ import {
     validateRegisterEmail,
     validateUser,
 } from '../middleware/authValidation';
-import { addUser, getUserWithEmail } from '../database/users';
-// import { createToken } from '../middleware/createToken';
+import Users, { User } from '../database/users';
 const router = Router();
 
 router.post(
@@ -15,25 +14,25 @@ router.post(
     validateRegisterEmail,
     async ({ body: { email, password, zip, name } }, res, next) => {
         const hash = bcrypt.hashSync(password);
+        const data = {
+            email,
+            hash,
+            zip,
+            posts: [],
+            name,
+        };
 
         try {
-            const userDocRef = await addUser({
-                email,
-                hash,
-                zip,
-                posts: [],
-                name,
-            });
-            const userDoc = await userDocRef.get();
-            const userData = userDoc.data();
+            const userData = await User.create(data);
             const user = {
-                email: userData?.email,
-                zip: userData?.zip,
-                name: userData?.name,
+                email: userData.email,
+                zip: userData.zip,
+                name: userData.name,
             };
             res.status(201).json(user);
         } catch (e) {
-            next({ status: 500, message: 'Unexpected Server Error' });
+            console.log(e);
+            next({ status: 500, message: e.message });
         }
     },
 );
@@ -42,17 +41,13 @@ router.post('/login', validateUser, async (req, res, next) => {
     // check for user token
     if (!req.body.user.token) {
         const token = jwt.sign(
-            { email: req.body.user.email, id: req.body.id },
+            { email: req.body.user.email, id: req.body.user.id },
             functions.config()['co-make'].jwt.secret,
         );
 
         // update user in database to include token
         try {
-            const docRef = await getUserWithEmail(req.body.user.email);
-            const docData = await docRef.docs.find(
-                (doc) => doc.data().email === req.body.user.email,
-            );
-            await docData?.ref.set({ token }, { merge: true });
+            await Users.doc(req.body.user.id).set({ token }, { merge: true });
             res.status(200).json(token);
         } catch (e) {
             next({ status: 500, message: 'Server login dun goofed' });
@@ -71,13 +66,10 @@ router.post('/login', validateUser, async (req, res, next) => {
                         functions.config()['co-make'].jwt.secret,
                     );
                     try {
-                        const docRef = await getUserWithEmail(
-                            req.body.user.email,
+                        await Users.doc(req.body.user.id).set(
+                            { token },
+                            { merge: true },
                         );
-                        const docData = await docRef.docs.find(
-                            (doc) => doc.data().email === req.body.user.email,
-                        );
-                        await docData?.ref.set({ token }, { merge: true });
                         res.status(200).json(token);
                     } catch (e) {
                         next({

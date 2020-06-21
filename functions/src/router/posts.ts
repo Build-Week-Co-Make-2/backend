@@ -66,7 +66,7 @@ router
             next({ status: 500, message: 'Server error grabbing all posts' });
         }
     })
-    .post(async ({ body: { title, description, id } }, res, next) => {
+    .post(async ({ body: { title, description, user } }, res, next) => {
         // add a post, requires user.id
         // if we get here, req.body.id should contain user.id
         /**
@@ -83,7 +83,7 @@ router
                 description: description,
                 upvotes: 0,
                 voted: [],
-                owner: id,
+                owner: user.id,
             };
             const post = await (await Posts.add(postCreateData)).get();
             const postData = post.data();
@@ -144,11 +144,7 @@ router
     })
     .put(
         async (
-            {
-                params: { id },
-                body: { title, description, id: authedUserId },
-                ...req
-            },
+            { params: { id }, body: { title, description, user }, ...req },
             res,
             next,
         ) => {
@@ -176,7 +172,7 @@ router
                 const postDocumentData = postDocument.data();
 
                 // verify postDocument.owner is the authed user
-                if (postDocumentData?.owner !== authedUserId) {
+                if (postDocumentData?.owner !== user.id) {
                     next({
                         status: 403,
                         message:
@@ -216,79 +212,75 @@ router
             }
         },
     )
-    .delete(
-        async ({ params: { id }, body: { id: authedUserId } }, res, next) => {
-            try {
-                const postDocument = await Posts.doc(id).get();
-                const postDocumentData = postDocument.data();
+    .delete(async ({ params: { id }, body: { user } }, res, next) => {
+        try {
+            const postDocument = await Posts.doc(id).get();
+            const postDocumentData = postDocument.data();
 
-                // verify postDocument.owner is the authed user
-                if (postDocumentData?.owner !== authedUserId) {
-                    next({
-                        status: 403,
-                        message:
-                            'Only the owner of a post may make changes to their documents',
-                    });
-                    return;
-                }
-
-                // remove reference to post.id in user.posts
-                await Users.doc(postDocumentData?.owner).update({
-                    posts: admin.firestore.FieldValue.arrayRemove(
-                        postDocument.ref.id,
-                    ),
+            // verify postDocument.owner is the authed user
+            if (postDocumentData?.owner !== user.id) {
+                next({
+                    status: 403,
+                    message:
+                        'Only the owner of a post may make changes to their documents',
                 });
-
-                await Posts.doc(postDocument.id).delete();
-                res.status(200).json({ message: 'Post has been deleted' });
-            } catch (e) {
-                console.log(e);
-                next({ status: 500, message: 'Server issue in deleting post' });
+                return;
             }
-        },
-    );
+
+            // remove reference to post.id in user.posts
+            await Users.doc(postDocumentData?.owner).update({
+                posts: admin.firestore.FieldValue.arrayRemove(
+                    postDocument.ref.id,
+                ),
+            });
+
+            await Posts.doc(postDocument.id).delete();
+            res.status(200).json({ message: 'Post has been deleted' });
+        } catch (e) {
+            console.log(e);
+            next({ status: 500, message: 'Server issue in deleting post' });
+        }
+    });
 
 router
     .route('/:id/upvote')
-    .put(
-        async ({ params: { id: postId }, body: { id: userId } }, res, next) => {
-            // when the front end visits this end point, it will increment upvote after adding user id to voted
-            // get post doc
-            try {
-                const postDocumentRef = Posts.doc(postId);
-                const postData = (
-                    await postDocumentRef.get()
-                ).data() as PostDataModel;
-                const userVoted: string | undefined = postData.voted.find(
-                    (id) => id === userId,
-                );
-                // check if user is inside voted
-                if (!userVoted) {
-                    // if not
-                    // increment votes by 1
+    .put(async ({ params: { id: postId }, body: { user } }, res, next) => {
+        // when the front end visits this end point, it will increment upvote after adding user id to voted
+        // get post doc
+        try {
+            const postDocumentRef = Posts.doc(postId);
+            const postData = (
+                await postDocumentRef.get()
+            ).data() as PostDataModel;
+            const userVoted: string | undefined = postData.voted.find(
+                (id) => id === user.id,
+            );
+            // check if user is inside voted
+            if (!userVoted) {
+                // if not
+                // increment votes by 1
 
-                    await postDocumentRef.update({
-                        voted: admin.firestore.FieldValue.arrayUnion(userId),
-                        upvotes: admin.firestore.FieldValue.increment(1),
-                    }); // this will have an owner field
-
-                    res.status(200).json({ message: 'Upvoted post' });
-                    return;
-                }
-                // send message stating user already voted and do nothing
                 await postDocumentRef.update({
-                    voted: admin.firestore.FieldValue.arrayRemove(userId),
-                    upvotes: admin.firestore.FieldValue.increment(-1),
-                });
-                res.status(200).json({ message: 'Removed upvote' });
-            } catch (e) {
-                console.log(e);
-                next({
-                    status: 500,
-                    message: 'Server dun goofed trying to upvote this post',
-                });
+                    voted: admin.firestore.FieldValue.arrayUnion(user.id),
+                    upvotes: admin.firestore.FieldValue.increment(1),
+                }); // this will have an owner field
+
+                res.status(200).json({ message: 'Upvoted post' });
+                return;
             }
-        },
-    );
+            // send message stating user already voted and do nothing
+            await postDocumentRef.update({
+                voted: admin.firestore.FieldValue.arrayRemove(user.id),
+                upvotes: admin.firestore.FieldValue.increment(-1),
+            });
+            res.status(200).json({ message: 'Removed upvote' });
+        } catch (e) {
+            console.log(e);
+            next({
+                status: 500,
+                message: 'Server dun goofed trying to upvote this post',
+            });
+        }
+    });
 
 export default router;
