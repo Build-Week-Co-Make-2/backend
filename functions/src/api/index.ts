@@ -14,8 +14,8 @@ server.use(cors({ origin: true })); // this was the issue with reaching past roo
 server.use(helmet());
 server.use(morgan('tiny'));
 
-server.use('/api', authRouter);
-server.use('/api/posts', postRouter);
+server.use('/auth', authRouter);
+server.use('/api/issues', postRouter);
 server.use('/api/users', userRouter);
 
 server.use(errorHandler);
