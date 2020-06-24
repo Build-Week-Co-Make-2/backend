@@ -23,8 +23,8 @@ interface OriginalPost {
               FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>
           >;
     title: string;
-    description: string;
-    upvotes: number;
+    desc: string;
+    votes: number;
     voted: string[];
 }
 
