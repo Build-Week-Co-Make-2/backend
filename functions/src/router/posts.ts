@@ -15,7 +15,7 @@ type Owner = {
     name: string;
 };
 
-interface Post {
+interface OriginalPost {
     owner:
         | Owner
         | Promise<Owner>
@@ -44,19 +44,19 @@ router
             // populate owner field
             // what does it mean to populate the owner field?
             // turn the id string into an object that represents the owner
-            const postsData: Promise<Post>[] = posts.docs.map(
+            const postsData: Promise<OriginalPost>[] = posts.docs.map(
                 async (post, index) => {
                     const ownerId = post.data().owner;
                     const owner = (await Users.doc(ownerId).get()).data();
                     return {
-                        ...(post.data() as Post),
+                        ...(post.data() as OriginalPost),
                         id: post.ref.id,
                         owner: {
                             email: owner?.email,
                             name: owner?.name,
                             zip: owner?.name,
                         },
-                    } as Post;
+                    } as OriginalPost;
                 },
             );
             const promiseResults = await Promise.all(postsData);
