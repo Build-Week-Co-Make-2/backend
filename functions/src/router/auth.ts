@@ -12,7 +12,7 @@ const router = Router();
 router.post(
     '/register/',
     validateRegisterEmail,
-    async ({ body: { email, password, zip, name } }, res, next) => {
+    async ({ body: { email, password, zip, name, state } }, res, next) => {
         const hash = bcrypt.hashSync(password);
         const data = {
             email,
@@ -20,16 +20,13 @@ router.post(
             zip,
             posts: [],
             name,
+            state,
         };
 
         try {
-            const userData = await User.create(data);
-            const user = {
-                email: userData.email,
-                zip: userData.zip,
-                name: userData.name,
-            };
-            res.status(201).json(user);
+            const user = await User.create(data);
+            const userData = user.data;
+            res.status(201).json(userData);
         } catch (e) {
             console.log(e);
             next({ status: 500, message: e.message });
