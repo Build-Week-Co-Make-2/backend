@@ -217,6 +217,8 @@ https://co-make-9cf46.web.app
 }
 ```
 
+## Users Route
+
 ### Get Users: GET https://co-make-9cf46.web.app/api/users/
 
 #### response.data
