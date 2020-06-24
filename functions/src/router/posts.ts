@@ -2,31 +2,12 @@ import { Router } from 'express';
 import admin from 'firebase-admin';
 import { authenticate } from '../middleware/authenticate';
 import { getAuthedUser } from '../middleware/getAuthedUser';
-import Posts, { PostDataModel } from '../database/posts';
-import Users from '../database/users';
+import Posts, { PostDataModel, Post } from '../database/posts';
+import Users, { PublicUserDataModel } from '../database/users';
 const router = Router();
 
 // base route
 router.use(authenticate, getAuthedUser); // checks for token immediately for all routes
-
-type Owner = {
-    email: string;
-    zip: string;
-    name: string;
-};
-
-interface OriginalPost {
-    owner:
-        | Owner
-        | Promise<Owner>
-        | Promise<
-              FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>
-          >;
-    title: string;
-    desc: string;
-    votes: number;
-    voted: string[];
-}
 
 /**
  * !TODO: There is a lot of copy/pasted code for shaping data, needs to be extracted into it's own function
@@ -39,41 +20,21 @@ router
 
         // get posts
         try {
-            const posts = await Posts.get();
-
-            // populate owner field
-            // what does it mean to populate the owner field?
-            // turn the id string into an object that represents the owner
-            const postsData: Promise<OriginalPost>[] = posts.docs.map(
-                async (post, index) => {
-                    const ownerId = post.data().owner;
-                    const owner = (await Users.doc(ownerId).get()).data();
-                    return {
-                        ...(post.data() as OriginalPost),
-                        id: post.ref.id,
-                        owner: {
-                            email: owner?.email,
-                            name: owner?.name,
-                            zip: owner?.name,
-                        },
-                    } as OriginalPost;
-                },
-            );
-            const promiseResults = await Promise.all(postsData);
-            res.status(200).json(promiseResults);
+            const posts = await Post.getAll();
+            res.status(200).json(posts);
         } catch (e) {
             console.log(e);
             next({ status: 500, message: 'Server error grabbing all posts' });
         }
     })
-    .post(async ({ body: { title, description, user } }, res, next) => {
+    .post(async ({ body: { title, desc, user, state, zip } }, res, next) => {
         // add a post, requires user.id
         // if we get here, req.body.id should contain user.id
         /**
          *  posts
          * -title
-         * -description
-         * -upvotes
+         * -desc
+         * -votes
          * -voted: [users.id]
          * -owner: users.id
          */
