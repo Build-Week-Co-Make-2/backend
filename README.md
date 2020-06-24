@@ -235,7 +235,7 @@ https://co-make-9cf46.web.app
 ]
 ```
 
-### Get Issue by ID: GET https://co-make-9cf46.web.app/api/users/:id
+### Get User by ID: GET https://co-make-9cf46.web.app/api/users/:id
 
 #### response.data
 
@@ -284,7 +284,7 @@ https://co-make-9cf46.web.app
 }
 ``` -->
 
-### Delete issue by ID: DELETE https://co-make-9cf46.web.app/api/users/:id
+### Delete User by ID: DELETE https://co-make-9cf46.web.app/api/users/:id
 
 #### response.data
 
