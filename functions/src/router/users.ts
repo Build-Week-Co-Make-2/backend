@@ -2,6 +2,7 @@ import { authenticate } from '../middleware/authenticate';
 import { User } from '../database/users';
 
 import { Router } from 'express';
+import { getAuthedUser } from '../middleware/getAuthedUser';
 const router = Router();
 
 router.use(authenticate);
@@ -34,8 +35,29 @@ router
         }
     })
     //   .put(async ({params: {id}}, res) => {})
-    .delete(async ({ params: { id } }, res) => {
-        // you can only delete users if that user is you
-    });
+    .delete(
+        getAuthedUser,
+        async ({ params: { id }, body: { user } }, res, next) => {
+            // you can only delete users if that user is you
+            try {
+                if (id === user.id) {
+                    const removeTime = await User.remove(id);
+                    res.status(200).json({
+                        message: `User has been removed at ${new Date(
+                            removeTime,
+                        ).toLocaleString()}`,
+                    });
+                    return;
+                }
+                next({
+                    status: 403,
+                    message: 'Only the owner may delete their account',
+                });
+            } catch (e) {
+                console.log(e);
+                next({ status: 500, message: 'Server issue removing user' });
+            }
+        },
+    );
 
 export default router;
