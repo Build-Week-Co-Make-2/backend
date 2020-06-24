@@ -123,8 +123,13 @@ export class User implements UserInterface {
         return userDocs;
     };
 
+    static remove = async (id: string) => {
+        const writeTime = await database.collection('users').doc(id).delete();
+        return writeTime.writeTime.toMillis();
+    };
+
     get data(): PublicUserDataModel {
-        const { id, name, email, zip } = this;
+        const { id, name, email, zip, state } = this;
         return {
             id,
             name,
