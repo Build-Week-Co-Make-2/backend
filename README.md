@@ -12,32 +12,31 @@
 
 ### User
 
-| Field    | Type   | Description       |
-| -------- | ------ | ----------------- |
-| id       | string | auto-generated id |
-| name     | string | required          |
-| email    | string | unique, required  |
-| password | string | required          |
-| zip      | string | required, 5 chars |
-| state    | string | required          |
+| Field | Type   | Description       |
+| ----- | ------ | ----------------- |
+| id    | string | auto-generated id |
+| name  | string | required          |
+| email | string | unique, required  |
+| zip   | string | required, 5 chars |
+| state | string | required          |
 
 ### Issue
 
-| Field       | Type     | Description              |
-| ----------- | -------- | ------------------------ |
-| id          | string   | auto-generated id        |
-| desc        | string   | required                 |
-| title       | string   | required                 |
-| voted       | string[] | auto-created             |
-| votes       | number   | auto-created             |
-| owner       | object   | User Schema, no password |
-| owner.id    | string   | auto-populated           |
-| owner.name  | string   | auto-populated           |
-| owner.email | string   | auto-populated           |
-| owner.zip   | string   | auto-populated           |
-| owner.state | string   | auto-populated           |
-| state       | string   | required                 |
-| zip         | string   | required                 |
+| Field       | Type     | Description       |
+| ----------- | -------- | ----------------- |
+| id          | string   | auto-generated id |
+| desc        | string   | required          |
+| title       | string   | required          |
+| voted       | string[] | auto-created      |
+| votes       | number   | auto-created      |
+| owner       | object   | User Schema       |
+| owner.id    | string   | auto-populated    |
+| owner.name  | string   | auto-populated    |
+| owner.email | string   | auto-populated    |
+| owner.zip   | string   | auto-populated    |
+| owner.state | string   | auto-populated    |
+| state       | string   | required          |
+| zip         | string   | required          |
 
 ## **base url**
 
