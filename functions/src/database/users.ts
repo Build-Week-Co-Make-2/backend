@@ -7,6 +7,7 @@ export interface PublicUserDataModel {
     zip: string;
     email: string;
     name: string;
+    state: string;
 }
 
 export interface UserInterface extends UserDataInterface {
@@ -19,6 +20,7 @@ export interface UserDataInterface {
     zip: string;
     posts: string[];
     name: string;
+    state: string;
     token?: string | undefined;
 }
 
@@ -28,11 +30,12 @@ export class User implements UserInterface {
     hash: string;
     zip: string;
     posts: string[];
+    state: string;
     name: string;
     token?: string | undefined;
 
     constructor(data: UserInterface) {
-        const { email, hash, zip, posts, name, id, token } = data;
+        const { email, hash, zip, posts, name, id, token, state } = data;
         this.id = id;
         this.email = email;
         this.name = name;
@@ -40,6 +43,7 @@ export class User implements UserInterface {
         this.zip = zip;
         this.posts = posts;
         this.token = token;
+        this.state = state;
     }
 
     static getById = async (id: string): Promise<User> => {
@@ -49,7 +53,7 @@ export class User implements UserInterface {
             if (document.exists) {
                 const data = {
                     ...(document.data() as UserDataInterface),
-                    id: document.id,
+                    id,
                 };
                 return new User(data);
             }
@@ -101,9 +105,7 @@ export class User implements UserInterface {
 
                 return new User(data);
             }
-            throw Error(
-                'There are two or more emails in the system and that cannot happen',
-            );
+            return undefined;
         } catch (e) {
             throw Error(e.message);
         }
@@ -128,6 +130,7 @@ export class User implements UserInterface {
             name,
             email,
             zip,
+            state,
         };
     }
     // async create(): Promise<FirebaseFirestore.DocumentData> {
