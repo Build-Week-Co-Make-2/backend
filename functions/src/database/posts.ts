@@ -49,6 +49,22 @@ export class Post implements PostModel {
         this.zip = zip;
     }
 
+    static getAll = async () => {
+        const posts = await Posts.get();
+
+        // populate owner field
+        // what does it mean to populate the owner field?
+        // turn the id string into an object that represents the owner
+        const postsData: Promise<Post>[] = posts.docs.map(async (post) => {
+            return new Post({
+                id: post.id,
+                ...(post.data() as PostDataModel),
+            }).data;
+        });
+        const promiseResults = await Promise.all(postsData);
+        return promiseResults;
+    };
+
     static getById = async (id: string) => {
         try {
             const document = await database.collection('posts').doc(id).get();
