@@ -28,7 +28,6 @@ router.post(
             const userData = user.data;
             res.status(201).json(userData);
         } catch (e) {
-            console.log(e);
             next({ status: 500, message: e.message });
         }
     },
