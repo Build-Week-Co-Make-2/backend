@@ -7,7 +7,12 @@
     },
     "hosting": {
         "public": ".",
-        "ignore": ["firebase.json", "**/node_modules/**", "firebase.config.ts"],
+        "ignore": [
+            "co-make-*",
+            "firebase.json",
+            "**/node_modules/**",
+            "firebase.config.ts"
+        ],
         "rewrites": [
             {
                 "source": "**",
